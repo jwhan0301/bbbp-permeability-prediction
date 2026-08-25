@@ -2,6 +2,13 @@
 
 SMILES로 표현된 분자가 혈액–뇌 장벽(Blood–Brain Barrier, BBB)을 투과하는 경향이 있는지 분류하는 교육·연구용 기준모델 프로젝트입니다.
 
+## 바로 사용하기
+
+- [공개 Streamlit 앱에서 SMILES 예측하기](https://jwhan0301-bbbp-permeability-prediction.streamlit.app/)
+- [GitHub 저장소 보기](https://github.com/jwhan0301/bbbp-permeability-prediction)
+
+공개 앱은 실제 배포 환경에서 카페인 예측, 분자 구조 표시, 학습 데이터 유사도, 빈 입력과 잘못된 SMILES 처리를 확인했습니다.
+
 ## 30초 요약
 
 - MoleculeNet BBBP 데이터 2,050행을 점검하고, RDKit이 해석할 수 있으며 중복·라벨 충돌 처리를 통과한 1,965개 분자를 모델링에 사용했습니다.
@@ -90,6 +97,7 @@ Streamlit이 출력한 주소(보통 `http://localhost:8501`)를 브라우저에
 | `MODEL_CARD.md` | 모델 데이터·설정·평가·사용 한계 |
 | `LICENSE` | 이 저장소에서 직접 작성한 코드의 MIT License |
 | `requirements.txt` | 실행을 확인한 Python 패키지 버전 |
+| `packages.txt` | Streamlit Cloud의 RDKit 구조 그림에 필요한 Linux 시스템 라이브러리 |
 
 ## 한계
 
