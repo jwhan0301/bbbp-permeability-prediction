@@ -111,7 +111,7 @@ if st.button("Predict", type="primary"):
 st.warning(
     "연구 및 교육용 데모입니다. 실제 약물개발·임상·의학적 판단에 사용할 수 없습니다. "
     "고정 test에서 BBB- Specificity는 0.5699로 BBB+ Sensitivity 0.9800보다 낮았습니다. "
-    "학습 데이터와 구조가 크게 다른 분자의 결과는 특히 신뢰하기 어렵습니다."
+    "학습 데이터와 구조가 크게 다른 분자의 결과는 교차검증이 필요합니다."
 )
 st.caption(
     "모델: Train 1,572개로 학습한 Day 3 Morgan fingerprint Random Forest · "
