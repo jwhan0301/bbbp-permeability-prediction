@@ -1,0 +1,17 @@
+metric,value
+original_rows,2050.0
+parse_success_rows,2039.0
+parse_failure_excluded_rows,11.0
+canonical_failure_rows,0.0
+duplicate_group_count,60.0
+duplicate_rows_involved,124.0
+redundant_duplicate_rows,64.0
+same_label_duplicate_group_count,50.0
+same_label_duplicate_excluded_rows,54.0
+conflicting_label_group_count,10.0
+conflicting_label_excluded_rows,20.0
+final_model_rows,1965.0
+final_BBB+_count,1500.0
+final_BBB+_percent,76.34
+final_BBB-_count,465.0
+final_BBB-_percent,23.66

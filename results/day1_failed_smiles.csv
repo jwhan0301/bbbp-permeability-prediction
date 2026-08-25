@@ -1,0 +1,12 @@
+num,name,p_np,class,smiles,parse_error
+60,15,1,BBB+,O=N([O-])C1=C(CN=C1NCCSCc2ncccc2)Cc3ccccc3,"Explicit valence for atom # 1 N, 4, is greater than permitted"
+62,22767,1,BBB+,c1(nc(NC(N)=[NH2])sc1)CSCCNC(=[NH]C#N)NC,"Explicit valence for atom # 6 N, 4, is greater than permitted"
+393,ICI17148,1,BBB+,Cc1nc(sc1)\[NH]=C(\N)N,"Explicit valence for atom # 6 N, 4, is greater than permitted"
+616,5-6,1,BBB+,s1cc(CSCCN\C(NC)=[NH]\C#N)nc1\[NH]=C(\N)N,"Explicit valence for atom # 11 N, 4, is greater than permitted"
+644,12,0,BBB-,c1c(c(ncc1)CSCCN\C(=[NH]\C#N)NCC)Br,"Explicit valence for atom # 12 N, 4, is greater than permitted"
+647,16,1,BBB+,n1c(csc1\[NH]=C(\N)N)c1ccccc1,"Explicit valence for atom # 5 N, 4, is greater than permitted"
+648,17,0,BBB-,n1c(csc1\[NH]=C(\N)N)c1cccc(c1)N,"Explicit valence for atom # 5 N, 4, is greater than permitted"
+649,18,0,BBB-,n1c(csc1\[NH]=C(\N)N)c1cccc(c1)NC(C)=O,"Explicit valence for atom # 5 N, 4, is greater than permitted"
+650,19,0,BBB-,n1c(csc1\[NH]=C(\N)N)c1cccc(c1)N\C(NC)=[NH]\C#N,"Explicit valence for atom # 5 N, 4, is greater than permitted"
+651,2,1,BBB+,s1cc(nc1\[NH]=C(\N)N)C,"Explicit valence for atom # 5 N, 4, is greater than permitted"
+687,9-C17,1,BBB+,c1(cc(N\C(=[NH]\c2cccc(c2)CC)C)ccc1)CC,"Explicit valence for atom # 5 N, 4, is greater than permitted"

@@ -1,0 +1,4 @@
+candidate,tn,fp,fn,tp,BBB-_total,BBB-_correct,BBB+_total,BBB+_correct,specificity,sensitivity,balanced_accuracy,mcc,FP_reduction_vs_A,FN_increase_vs_A
+A: Existing RF,229,143,31,1169,372,229,1200,1169,0.615591,0.974167,0.794879,0.674656,0,0
+B: Balanced RF,269,103,57,1143,372,269,1200,1143,0.723118,0.952500,0.837809,0.708265,40,26
+C: Morgan + descriptors RF,238,134,30,1170,372,238,1200,1170,0.639785,0.975000,0.807392,0.694831,9,-1

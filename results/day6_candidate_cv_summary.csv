@@ -1,0 +1,25 @@
+candidate,feature_set,metric,mean,std,min,max
+A: Existing RF,Morgan 2048 bits,accuracy,0.889320,0.021461,0.866667,0.920382
+A: Existing RF,Morgan 2048 bits,f1_score,0.930828,0.012911,0.916996,0.949084
+A: Existing RF,Morgan 2048 bits,roc_auc,0.923675,0.032588,0.889499,0.963806
+A: Existing RF,Morgan 2048 bits,pr_auc,0.969658,0.015430,0.950413,0.987591
+A: Existing RF,Morgan 2048 bits,balanced_accuracy,0.794975,0.041915,0.756667,0.863795
+A: Existing RF,Morgan 2048 bits,mcc,0.674409,0.068085,0.603249,0.771083
+A: Existing RF,Morgan 2048 bits,sensitivity,0.974167,0.010375,0.966667,0.991667
+A: Existing RF,Morgan 2048 bits,specificity,0.615784,0.082811,0.546667,0.756757
+B: Balanced RF,Morgan 2048 bits,accuracy,0.898208,0.028038,0.872611,0.933333
+B: Balanced RF,Morgan 2048 bits,f1_score,0.934708,0.017482,0.918033,0.956879
+B: Balanced RF,Morgan 2048 bits,roc_auc,0.928607,0.030685,0.894369,0.966194
+B: Balanced RF,Morgan 2048 bits,pr_auc,0.973395,0.012716,0.956642,0.988283
+B: Balanced RF,Morgan 2048 bits,balanced_accuracy,0.837782,0.050489,0.796734,0.893919
+B: Balanced RF,Morgan 2048 bits,mcc,0.707550,0.084956,0.634377,0.811786
+B: Balanced RF,Morgan 2048 bits,sensitivity,0.952500,0.013693,0.933333,0.970833
+B: Balanced RF,Morgan 2048 bits,specificity,0.723063,0.095080,0.635135,0.837838
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,accuracy,0.895685,0.021678,0.873016,0.929936
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,f1_score,0.934592,0.013234,0.920635,0.955102
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,roc_auc,0.930251,0.025334,0.906785,0.963778
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,pr_auc,0.973462,0.009833,0.964307,0.987536
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,balanced_accuracy,0.807536,0.041822,0.770000,0.879392
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,mcc,0.695202,0.067228,0.624371,0.799428
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,sensitivity,0.975000,0.012843,0.962500,0.995833
+C: Morgan + descriptors RF,Morgan 2048 bits + 8 descriptors,specificity,0.640072,0.083305,0.573333,0.783784

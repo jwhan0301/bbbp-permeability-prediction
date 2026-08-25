@@ -1,0 +1,4 @@
+model,feature_set,accuracy,f1_score,roc_auc
+DummyClassifier,입력을 무시함,0.7634,0.8658,0.5
+Logistic Regression,8 RDKit descriptors,0.855,0.91,0.8475
+Random Forest,"Morgan radius=2, 2048 bits",0.883,0.9274,0.896

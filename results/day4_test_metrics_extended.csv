@@ -1,0 +1,4 @@
+model,feature_set,threshold,accuracy,precision,f1_score,roc_auc,pr_auc,balanced_accuracy,mcc,sensitivity,specificity,tn,fp,fn,tp
+DummyClassifier,입력을 무시함,0.500000,0.763359,0.763359,0.865801,0.500000,0.763359,0.500000,0.000000,1.000000,0.000000,0,93,0,300
+Logistic Regression,8 RDKit descriptors,0.500000,0.854962,0.864865,0.909953,0.847455,0.926562,0.738065,0.562638,0.960000,0.516129,48,45,12,288
+Random Forest,"Morgan radius=2, 2048 bits",0.500000,0.882952,0.880240,0.927445,0.895986,0.949598,0.774946,0.654306,0.980000,0.569892,53,40,6,294

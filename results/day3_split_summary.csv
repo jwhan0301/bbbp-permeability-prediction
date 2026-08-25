@@ -1,0 +1,4 @@
+split,rows,BBB-_count,BBB-_percent,BBB+_count,BBB+_percent
+full,1965,465,23.66,1500,76.34
+train,1572,372,23.66,1200,76.34
+test,393,93,23.66,300,76.34

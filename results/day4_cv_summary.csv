@@ -1,0 +1,25 @@
+model,feature_set,metric,mean,std,min,max
+DummyClassifier,입력을 무시함,accuracy,0.763361,0.001329,0.761905,0.764331
+DummyClassifier,입력을 무시함,f1_score,0.865802,0.000855,0.864865,0.866426
+DummyClassifier,입력을 무시함,roc_auc,0.500000,0.000000,0.500000,0.500000
+DummyClassifier,입력을 무시함,pr_auc,0.763361,0.001329,0.761905,0.764331
+DummyClassifier,입력을 무시함,balanced_accuracy,0.500000,0.000000,0.500000,0.500000
+DummyClassifier,입력을 무시함,mcc,0.000000,0.000000,0.000000,0.000000
+DummyClassifier,입력을 무시함,sensitivity,1.000000,0.000000,1.000000,1.000000
+DummyClassifier,입력을 무시함,specificity,0.000000,0.000000,0.000000,0.000000
+Logistic Regression,8 RDKit descriptors,accuracy,0.840342,0.015814,0.815873,0.856688
+Logistic Regression,8 RDKit descriptors,f1_score,0.901806,0.009172,0.887597,0.911243
+Logistic Regression,8 RDKit descriptors,roc_auc,0.848099,0.019177,0.819278,0.865444
+Logistic Regression,8 RDKit descriptors,pr_auc,0.932539,0.012044,0.912120,0.942214
+Logistic Regression,8 RDKit descriptors,balanced_accuracy,0.707261,0.029137,0.663750,0.738007
+Logistic Regression,8 RDKit descriptors,mcc,0.509915,0.056013,0.423507,0.566286
+Logistic Regression,8 RDKit descriptors,sensitivity,0.960000,0.006972,0.954167,0.970833
+Logistic Regression,8 RDKit descriptors,specificity,0.454523,0.056190,0.373333,0.513514
+Random Forest,"Morgan radius=2, 2048 bits",accuracy,0.889320,0.021461,0.866667,0.920382
+Random Forest,"Morgan radius=2, 2048 bits",f1_score,0.930828,0.012911,0.916996,0.949084
+Random Forest,"Morgan radius=2, 2048 bits",roc_auc,0.923675,0.032588,0.889499,0.963806
+Random Forest,"Morgan radius=2, 2048 bits",pr_auc,0.969658,0.015430,0.950413,0.987591
+Random Forest,"Morgan radius=2, 2048 bits",balanced_accuracy,0.794975,0.041915,0.756667,0.863795
+Random Forest,"Morgan radius=2, 2048 bits",mcc,0.674409,0.068085,0.603249,0.771083
+Random Forest,"Morgan radius=2, 2048 bits",sensitivity,0.974167,0.010375,0.966667,0.991667
+Random Forest,"Morgan radius=2, 2048 bits",specificity,0.615784,0.082811,0.546667,0.756757
