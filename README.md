@@ -1,75 +1,188 @@
-# SMILES 기반 혈액–뇌 장벽 투과성 예측
+# SMILES-Based Blood-Brain Barrier Permeability Prediction
 
-SMILES로 표현된 분자가 혈액–뇌 장벽(Blood–Brain Barrier, BBB)을 투과하는 경향이 있는지 분류하는 교육·연구용 기준모델 프로젝트입니다.
+This educational research project predicts whether a molecule is more likely to be labeled BBB+ or BBB- from its SMILES representation. It uses the public MoleculeNet BBBP dataset, RDKit molecular features, three prespecified baseline models, and a deployed Streamlit application.
 
-## 바로 사용하기
+The deployed model is a Random Forest trained on 2,048-bit Morgan fingerprints. Its output is an uncalibrated classification score, not a measured blood-brain barrier passage probability, brain concentration, or clinical prediction.
 
-- [공개 Streamlit 앱에서 SMILES 예측하기](https://jwhan0301-bbbp-permeability-prediction.streamlit.app/)
-- [GitHub 저장소 보기](https://github.com/jwhan0301/bbbp-permeability-prediction)
+## Live Demo
 
-공개 앱은 실제 배포 환경에서 카페인 예측, 분자 구조 표시, 학습 데이터 유사도, 빈 입력과 잘못된 SMILES 처리를 확인했습니다.
+- [Open the Streamlit application](https://jwhan0301-bbbp-permeability-prediction.streamlit.app/)
+- [View the GitHub repository](https://github.com/jwhan0301/bbbp-permeability-prediction)
 
-## 30초 요약
+The deployed application was checked for valid and invalid SMILES input, molecular structure rendering, saved-model inference, and nearest-training-molecule similarity output.
 
-- MoleculeNet BBBP 데이터 2,050행을 점검하고, RDKit이 해석할 수 있으며 중복·라벨 충돌 처리를 통과한 1,965개 분자를 모델링에 사용했습니다.
-- 현재 앱은 RDKit Morgan fingerprint(`radius=2`, `fpSize=2048`)와 랜덤 포레스트(Random Forest)를 사용합니다.
-- 현재 앱 모델의 고정 시험 데이터 ROC-AUC는 **0.895986**입니다.
-- BBB+ 민감도는 **0.980000**이지만 BBB- 특이도는 **0.569892**로, BBB- 식별력이 상대적으로 낮습니다.
-- Streamlit 데모는 BBB 예측과 함께 가장 유사한 학습 분자와 타니모토 유사도(Tanimoto similarity)를 보여줍니다.
+![Streamlit BBBP prediction demo](docs/images/bbbp_streamlit_demo.png)
 
-## 앱 화면
+## Project at a Glance
 
-![Streamlit BBBP 예측 데모](docs/images/bbbp_streamlit_demo.png)
+- Audited all 2,050 rows in the public DeepChem BBBP CSV.
+- Prepared 1,965 valid, non-conflicting, canonicalized molecules for modeling without modifying the source dataset.
+- Used a stratified 80:20 train-test split with `random_state=42`.
+- Compared a DummyClassifier, descriptor-based Logistic Regression, and Morgan fingerprint Random Forest on the same held-out test set.
+- Selected the Random Forest because it produced the strongest Accuracy, F1-score, and ROC-AUC among the three prespecified baseline models.
+- Deployed the saved Random Forest without retraining it inside the application.
+- Added nearest-training-molecule Tanimoto similarity as contextual information; similarity does not determine the BBB prediction.
 
-SMILES를 입력하면 BBB+/BBB- 예측과 BBB+ 모델 점수를 표시합니다. 가장 유사한 학습 분자와 타니모토 유사도도 함께 보여주지만, 이 유사도는 예측 신뢰확률이나 정확도를 보장하지 않습니다.
+## Dataset and Modeling Cohort
 
-## 프로젝트 흐름
+The dataset is downloaded at runtime from the public URL specified by the official [DeepChem BBBP loader](https://github.com/deepchem/deepchem/blob/master/deepchem/molnet/load_function/bbbp_datasets.py). The raw BBBP CSV is not stored in this repository.
 
-```text
-SMILES 입력
-→ RDKit으로 분자 구조 해석
-→ Morgan fingerprint 생성
-→ Random Forest 예측
-→ BBB 점수와 가장 유사한 학습 분자 표시
+| Data-processing stage | Molecules |
+|---|---:|
+| Original BBBP rows | 2,050 |
+| RDKit parsing failures excluded from modeling | 11 |
+| Same-label duplicate rows excluded from modeling | 54 |
+| Conflicting-label rows excluded from modeling | 20 |
+| Final modeling cohort | **1,965** |
+
+The original rows were retained for auditing. A parsing failure means that RDKit could not construct a molecular object, so molecular features could not be calculated. For duplicate canonical SMILES with the same label, the first source row was retained. If the same canonical SMILES had conflicting labels, the complete conflicting group was excluded rather than assigning a label arbitrarily.
+
+The final modeling cohort contained 1,500 BBB+ molecules (76.34%) and 465 BBB- molecules (23.66%).
+
+| Split | Total | BBB- | BBB+ |
+|---|---:|---:|---:|
+| Train | 1,572 | 372 | 1,200 |
+| Held-out test | 393 | 93 | 300 |
+
+## Model Architecture
+
+### Training and final evaluation
+
+```mermaid
+flowchart TD
+    A["DeepChem BBBP CSV<br/>2,050 rows"] --> B["RDKit SMILES parsing"]
+    B --> C["Canonical SMILES generation"]
+    C --> D["Duplicate and label-conflict handling"]
+    D --> E["Final modeling cohort<br/>1,965 molecules"]
+    E --> F["Stratified 80:20 split<br/>random_state=42"]
+    F --> G["Train<br/>1,572 molecules"]
+    F --> H["Held-out test<br/>393 molecules"]
+    G --> I["Morgan fingerprints<br/>radius=2, 2,048 bits"]
+    I --> J["Random Forest<br/>300 trees"]
+    H --> K["Same Morgan transformation"]
+    J --> L["Saved train-only model"]
+    K --> M["One-time final evaluation"]
+    L --> M
 ```
 
-- **SMILES:** 원자와 결합을 문자로 나타낸 분자 구조 표현입니다.
-- **Morgan fingerprint:** 분자 주변 구조의 특징을 0과 1로 바꾼 2,048비트 분자 지문입니다.
-- **타니모토 유사도:** 두 분자 지문에서 켜진 비트가 얼마나 겹치는지 0~1로 나타낸 구조 유사도입니다.
+### Deployed inference path
 
-## 핵심 결과
+```mermaid
+flowchart TD
+    A["User SMILES"] --> B["Input checks and RDKit parsing"]
+    B --> C["Canonical SMILES"]
+    B --> D["RDKit 2D structure image"]
+    C --> E["Morgan fingerprint<br/>1 x 2,048 bits"]
+    E --> F["Saved Random Forest"]
+    F --> G["Uncalibrated BBB+ score"]
+    G --> H{"Score > 0.5?"}
+    H -->|Yes| I["BBB+"]
+    H -->|No| J["BBB-"]
+    E --> K["Tanimoto comparison with<br/>1,572 training fingerprints"]
+    K --> L["Nearest training molecule<br/>and similarity warning"]
+```
 
-현재 Streamlit 앱은 3일 차에 만든 기존 랜덤 포레스트를 사용합니다. 최종 모델용 분자 1,965개를 클래스 비율이 유지되도록 80:20으로 나누고(`random_state=42`), 학습 데이터 1,572개로 학습한 뒤 따로 보관한 시험 데이터 393개에서 한 번 평가했습니다. 분류 기준은 0.5입니다.
+The similarity branch is independent of the classification branch. The Random Forest determines the BBB prediction; the nearest training molecule is displayed only to help users judge whether the input structure resembles structures seen during training.
 
-| 지표 | 고정 시험 결과 |
+### Deployed model specification
+
+| Component | Setting |
+|---|---|
+| Input | One valid SMILES string |
+| Parser and canonicalization | RDKit |
+| Molecular representation | Morgan bit vector |
+| Morgan radius | 2 |
+| Fingerprint size | 2,048 bits |
+| Estimator | `RandomForestClassifier` |
+| Number of trees | 300 |
+| Class weighting | None |
+| Random state | 42 |
+| Classification threshold | 0.5 |
+| Application retraining | None; a saved model is loaded |
+
+The eight RDKit descriptors were used only by the Logistic Regression comparison model. They are not inputs to the deployed Random Forest.
+
+## Baseline Model Comparison
+
+All three models were defined before final evaluation and were trained on the same 1,572 training molecules. They were evaluated on the same 393 held-out test molecules.
+
+| Model | Molecular representation | Accuracy | F1-score | ROC-AUC |
+|---|---|---:|---:|---:|
+| DummyClassifier | No molecular features; always predicts the majority class | 0.7634 | 0.8658 | 0.5000 |
+| Logistic Regression | 8 RDKit descriptors with train-fitted standardization | 0.8550 | 0.9100 | 0.8475 |
+| **Random Forest** | **Morgan fingerprint, radius=2, 2,048 bits** | **0.8830** | **0.9274** | **0.8960** |
+
+The DummyClassifier shows why Accuracy and F1-score must be interpreted carefully: because 76.34% of the modeling cohort is BBB+, predicting only BBB+ already gives an Accuracy of 0.7634 and an F1-score of 0.8658, despite providing no molecular discrimination. Its ROC-AUC is 0.5000.
+
+## Why Random Forest Was Selected
+
+The Random Forest was selected as the deployed baseline for three reasons:
+
+1. It achieved the highest Accuracy, F1-score, and ROC-AUC among the three prespecified models under the same fixed split.
+2. Morgan fingerprints retain many local substructure patterns, while the Logistic Regression model uses only eight global molecular descriptors. Random Forest can learn nonlinear interactions among those fingerprint bits without requiring feature scaling.
+3. It provided a strong, reproducible baseline without complex hyperparameter optimization.
+
+This selection does not mean that Random Forest is universally the best BBBP model. The result is specific to this curated dataset, molecular representation, and one stratified random split. The model also has an important BBB- detection limitation described below.
+
+## Held-Out Test Performance
+
+The deployed Random Forest was evaluated once on the fixed test set of 393 molecules at a threshold of 0.5.
+
+| Metric | Value |
 |---|---:|
-| 정확도(Accuracy) | 0.882952 |
-| F1 점수 | 0.927445 |
+| Accuracy | 0.882952 |
+| Precision for BBB+ | 0.880240 |
+| F1-score for BBB+ | 0.927445 |
 | ROC-AUC | 0.895986 |
-| 균형 정확도(Balanced Accuracy) | 0.774946 |
+| PR-AUC | 0.949598 |
+| Balanced Accuracy | 0.774946 |
 | MCC | 0.654306 |
-| 민감도(BBB+ 재현율) | 0.980000 |
-| 특이도(BBB- 재현율) | 0.569892 |
-| TN / FP / FN / TP | 53 / 40 / 6 / 294 |
+| Sensitivity / BBB+ recall | 0.980000 |
+| Specificity / BBB- recall | **0.569892** |
 
-BBB+는 잘 찾았지만 BBB-를 BBB+로 잘못 분류한 경우가 상대적으로 많았습니다. BBB+가 전체 모델용 데이터의 76.34%이므로 정확도만 보면 성능을 실제보다 좋게 판단할 수 있습니다. 또한 이 수치는 한 번의 무작위 분할에서 얻은 결과이며, 다른 데이터 분할이나 외부 데이터에서 달라질 수 있습니다.
+### Confusion matrix
 
-## 6일 차 개선 후보
+Rows are actual labels and columns are model predictions.
 
-클래스 가중치를 적용한 Balanced RF는 **기존 학습 데이터 1,572개만 사용한 5겹 교차검증 후보**입니다. 아래 값은 같은 교차검증 조건에서 비교한 평균이며, 위 고정 시험 결과와 직접 비교하는 수치가 아닙니다.
-
-| 학습 데이터 전용 교차검증 지표 | 기존 RF | Balanced RF |
+|  | Predicted BBB- | Predicted BBB+ |
 |---|---:|---:|
-| 균형 정확도 | 0.794975 | 0.837782 |
+| **Actual BBB-** | TN = 53 | FP = 40 |
+| **Actual BBB+** | FN = 6 | TP = 294 |
+
+The model correctly identified 294 of 300 BBB+ molecules, producing a Sensitivity of 0.9800. In contrast, it correctly identified only 53 of 93 BBB- molecules, producing a Specificity of 0.5699. Forty BBB- molecules were incorrectly classified as BBB+.
+
+This difference is the model's most important performance limitation. The high Accuracy and F1-score are influenced by the BBB+ majority class and should not be interpreted without the confusion matrix, Sensitivity, Specificity, Balanced Accuracy, and MCC.
+
+## Train-Only Improvement Experiment
+
+A class-weighted Random Forest was examined later as an improvement candidate using only the original 1,572 training molecules in 5-fold cross-validation.
+
+| Train-only 5-fold CV metric | Existing RF | Balanced RF |
+|---|---:|---:|
+| Balanced Accuracy | 0.794975 | 0.837782 |
 | MCC | 0.674409 | 0.707550 |
-| 민감도 | 0.974167 | 0.952500 |
-| 특이도 | 0.615784 | 0.723063 |
+| Sensitivity | 0.974167 | 0.952500 |
+| Specificity | 0.615784 | 0.723063 |
 
-Balanced RF는 균형 정확도·MCC·특이도가 높아졌지만 민감도는 낮아졌습니다. 기존 시험 데이터는 후보 선택이나 재평가에 사용하지 않았습니다. 아직 외부 데이터 검증을 하지 않았으므로 앱 모델도 Balanced RF로 교체하지 않았습니다.
+The Balanced RF improved mean Specificity, Balanced Accuracy, and MCC but reduced mean Sensitivity. These cross-validation values are not directly comparable with the held-out test values above. The fixed test set was not reused to select or re-evaluate this candidate, and the deployed application still uses the original Random Forest pending evaluation on a new external or otherwise unused test set.
 
-## 빠른 실행 방법
+## Application Output and Structural Similarity
 
-Windows PowerShell에서 저장소 루트로 이동한 뒤 다음 명령을 실행합니다. 패키지 설치에는 인터넷 연결이 필요합니다.
+For one valid SMILES input, the application displays:
+
+- the RDKit 2D molecular structure;
+- the canonical SMILES;
+- the BBB+ or BBB- classification;
+- the uncalibrated BBB+ model score;
+- the nearest molecule among the 1,572 training molecules;
+- the corresponding Tanimoto similarity; and
+- a warning when the maximum training similarity is below 0.3000.
+
+The 0.3000 warning threshold is the 10th percentile of the leave-one-out nearest-neighbor similarity distribution within the training set. It is an empirical reference range, not a confidence level, prediction accuracy, or BBB passage probability.
+
+## Quick Start
+
+From the repository root, run the following commands in Windows PowerShell:
 
 ```powershell
 python -m venv .venv
@@ -79,48 +192,53 @@ python scripts\smoke_test.py
 python -m streamlit run app.py
 ```
 
-Streamlit이 출력한 주소(보통 `http://localhost:8501`)를 브라우저에서 엽니다. macOS나 Linux에서는 가상환경 활성화 명령만 `source .venv/bin/activate`로 바꾸면 됩니다.
+On macOS or Linux, replace the activation command with:
 
-저장된 앱 모델을 실행하는 데 BBBP 원본 CSV는 필요하지 않습니다. 모델과 분석을 처음부터 다시 만드는 방법은 [전체 실험 기록](docs/EXPERIMENT_LOG.md)과 [재현성 검증 기록](docs/REPRODUCIBILITY.md)을 참고하세요.
+```bash
+source .venv/bin/activate
+```
 
-## 주요 폴더 구조
+Package installation requires internet access. Running the saved application model does not require a local copy of the raw BBBP CSV.
 
-| 경로 | 역할 |
+## Repository Structure
+
+| Path | Purpose |
 |---|---|
-| `app.py` | SMILES 한 개를 입력받는 Streamlit 앱 |
-| `src/` | 분자 특징 생성, 예측, 유사도 계산 코드 |
-| `scripts/` | 모델·유사도 자료 재생성과 작동 검사 스크립트 |
-| `notebooks/` | 데이터 확인부터 모델 검증까지의 단계별 노트북 |
-| `models/` | 현재 앱 모델과 학습 분자 유사도 참조자료 |
-| `results/` | 실제 실행으로 생성한 성능표와 그림 |
-| `docs/` | 전체 실험 일지, 재현성 기록과 앱 이미지 |
-| `MODEL_CARD.md` | 모델 데이터·설정·평가·사용 한계 |
-| `LICENSE` | 이 저장소에서 직접 작성한 코드의 MIT License |
-| `requirements.txt` | 실행을 확인한 Python 패키지 버전 |
-| `packages.txt` | Streamlit Cloud의 RDKit 구조 그림에 필요한 Linux 시스템 라이브러리 |
+| `app.py` | Single-SMILES Streamlit application |
+| `src/` | Shared feature generation, prediction, and similarity functions |
+| `scripts/` | Model reconstruction, similarity-reference generation, and smoke tests |
+| `notebooks/` | Executable analysis notebooks from data inspection to validation |
+| `models/` | Saved deployed model and training-similarity reference artifact |
+| `results/` | Verified CSV performance tables and PNG figures |
+| `docs/` | Full experiment log, reproducibility record, and application image |
+| `MODEL_CARD.md` | Detailed model data, configuration, evaluation, and limitations |
+| `requirements.txt` | Python dependencies verified in the project environment |
+| `packages.txt` | Linux package required for RDKit structure rendering on Streamlit Cloud |
+| `LICENSE` | MIT License for code written directly in this repository |
 
-## 한계
+## Limitations
 
-- 최종 모델용 분자는 1,965개로 작고 BBB+가 76.34%인 불균형 데이터입니다.
-- 현재 앱 모델의 BBB- 특이도는 0.569892로 BBB- 식별력이 낮습니다.
-- 최종 평가는 `random_state=42`인 한 번의 무작위 분할 결과입니다.
-- 화학적으로 유사한 골격(scaffold)이 학습과 시험 데이터에 나뉘어 결과가 낙관적일 수 있습니다.
-- 골격 기준 분할과 외부 데이터 검증이 부족합니다.
-- 수송체, 대사, 농도와 실험 조건 같은 생물학적 정보를 입력에 사용하지 않습니다.
-- 이 모델과 앱은 임상 판단이나 실제 신약 개발 의사결정에 사용할 수 없습니다.
+- The final modeling cohort contains only 1,965 molecules and is imbalanced toward BBB+ labels.
+- The deployed model has a held-out test Specificity of 0.5699 and frequently misclassifies BBB- molecules as BBB+.
+- Final performance was measured using one stratified random split with `random_state=42`.
+- Structurally related molecular scaffolds may occur in both train and test sets, which can make random-split performance optimistic.
+- Scaffold-split, repeated-split, probability-calibration, and external-dataset validation remain limited or absent.
+- The model uses two-dimensional molecular structure patterns but does not directly model transporters, metabolism, protein binding, dose, concentration, experimental conditions, or species differences.
+- Tanimoto similarity indicates structural resemblance only; it is not prediction confidence.
+- The application is an educational research demo and must not be used for clinical, medical, or drug-development decisions.
 
-## 상세 문서
+## Detailed Records
 
-- [모델 카드](MODEL_CARD.md): 데이터, 모델 설정, 평가 결과와 사용 한계
-- [1~6일 차 전체 실험 기록](docs/EXPERIMENT_LOG.md): 전처리, 특징 생성, 학습, 검증, 오류 분석과 생성 파일
-- [독립 환경 재현성 검증](docs/REPRODUCIBILITY.md): 새 환경 설치와 실행 확인 결과
-- [실행 가능한 단계별 노트북](notebooks/): 분석 코드를 처음부터 실행할 수 있는 노트북
-- [결과 파일](results/): 실제 실행으로 생성한 CSV와 PNG
+- [Model card](MODEL_CARD.md)
+- [Full Day 1-6 experiment log](docs/EXPERIMENT_LOG.md)
+- [Independent-environment reproducibility record](docs/REPRODUCIBILITY.md)
+- [Executable notebooks](notebooks/)
+- [Verified result files](results/)
 
-## 데이터 출처와 라이선스
+## Data Source and License
 
-- 데이터: MoleculeNet BBBP, DeepChem의 [BBBP 불러오기 코드](https://github.com/deepchem/deepchem/blob/master/deepchem/molnet/load_function/bbbp_datasets.py)에 명시된 공개 CSV를 실행 시 불러옵니다.
-- 원 논문: Martins et al. (2012), [A Bayesian Approach to in Silico Blood-Brain Barrier Penetration Modeling](https://doi.org/10.1021/ci300124c)
-- BBBP 원본 CSV는 이 저장소에 포함하지 않습니다. 데이터의 권리와 이용 조건은 원 데이터 제공처의 조건을 따릅니다.
-- 이 저장소에서 직접 작성한 코드에는 [MIT License](LICENSE)가 적용됩니다.
-- 제3자 데이터와 라이브러리는 각각의 원래 라이선스 및 이용 조건을 따르며, 이 저장소의 MIT License는 BBBP 원본 데이터에 적용되지 않습니다.
+- Dataset: MoleculeNet BBBP, downloaded from the public CSV URL specified in the [DeepChem BBBP loader](https://github.com/deepchem/deepchem/blob/master/deepchem/molnet/load_function/bbbp_datasets.py)
+- Original study: Martins et al. (2012), [A Bayesian Approach to In Silico Blood-Brain Barrier Penetration Modeling](https://doi.org/10.1021/ci300124c)
+- The raw BBBP CSV is not included in this repository and remains subject to the original data provider's terms.
+- Code written directly in this repository is available under the [MIT License](LICENSE).
+- Third-party data and libraries remain subject to their original licenses and terms. The repository's MIT License does not apply to the original BBBP dataset.
