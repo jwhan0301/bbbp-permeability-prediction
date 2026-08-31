@@ -13,15 +13,45 @@ The deployed application was checked for valid and invalid SMILES input, molecul
 
 ![Streamlit BBBP prediction demo](docs/images/bbbp_streamlit_demo.png)
 
+Try the deployed app with the verified caffeine example:
+
+```text
+Cn1c(=O)c2c(ncn2C)n(C)c1=O
+```
+
 ## Project at a Glance
 
 - Audited all 2,050 rows in the public DeepChem BBBP CSV.
 - Prepared 1,965 valid, non-conflicting, canonicalized molecules for modeling without modifying the source dataset.
 - Used a stratified 80:20 train-test split with `random_state=42`.
-- Compared a DummyClassifier, descriptor-based Logistic Regression, and Morgan fingerprint Random Forest on the same held-out test set.
+- Compared a DummyClassifier, descriptor-based Logistic Regression, and Morgan fingerprint Random Forest on the same fixed 20% benchmark split.
 - Selected the Random Forest because it produced the strongest Accuracy, F1-score, and ROC-AUC among the three prespecified baseline models.
 - Deployed the saved Random Forest without retraining it inside the application.
 - Added nearest-training-molecule Tanimoto similarity as contextual information; similarity does not determine the BBB prediction.
+
+## Baseline Model Comparison
+
+All three models were trained on the same 1,572 training molecules and evaluated on the same fixed benchmark split of 393 molecules.
+
+| Model | Molecular representation | Accuracy | F1-score | ROC-AUC |
+|---|---|---:|---:|---:|
+| DummyClassifier | No molecular features; always predicts the majority class | 0.7634 | 0.8658 | 0.5000 |
+| Logistic Regression | 8 RDKit descriptors with train-fitted standardization | 0.8550 | 0.9100 | 0.8475 |
+| **Random Forest** | **Morgan fingerprint, radius=2, 2,048 bits** | **0.8830** | **0.9274** | **0.8960** |
+
+The DummyClassifier shows why Accuracy and F1-score must be interpreted carefully: because 76.34% of the modeling cohort is BBB+, predicting only BBB+ already gives an Accuracy of 0.7634 and an F1-score of 0.8658, despite providing no molecular discrimination. Its ROC-AUC is 0.5000.
+
+These are internal baseline comparisons within this project, not direct comparisons with published BBBP models trained and evaluated under different protocols. The same fixed 20% split was used to compare the three baselines and select the deployed Random Forest. Therefore, the reported performance should be treated as an internal benchmark rather than an independent post-selection estimate.
+
+## Why Random Forest Was Selected
+
+The Random Forest was selected as the deployed baseline for three reasons:
+
+1. It achieved the highest Accuracy, F1-score, and ROC-AUC among the three prespecified models on the same fixed benchmark split.
+2. Morgan fingerprints retain many local substructure patterns, while the Logistic Regression model uses only eight global molecular descriptors. Random Forest can learn nonlinear interactions among those fingerprint bits without requiring feature scaling.
+3. It provided a strong, reproducible baseline without complex hyperparameter optimization.
+
+This selection does not mean that Random Forest is universally the best BBBP model. The result is specific to this curated dataset, molecular representation, and one stratified random split. Independent post-selection or external validation would be needed for a less biased performance estimate.
 
 ## Dataset and Modeling Cohort
 
@@ -46,7 +76,7 @@ The final modeling cohort contained 1,500 BBB+ molecules (76.34%) and 465 BBB- m
 
 ## Model Architecture
 
-### Training and final evaluation
+### Training and internal benchmark
 
 ```mermaid
 flowchart TD
@@ -56,14 +86,23 @@ flowchart TD
     D --> E["Final modeling cohort<br/>1,965 molecules"]
     E --> F["Stratified 80:20 split<br/>random_state=42"]
     F --> G["Train<br/>1,572 molecules"]
-    F --> H["Held-out test<br/>393 molecules"]
-    G --> I["Morgan fingerprints<br/>radius=2, 2,048 bits"]
-    I --> J["Random Forest<br/>300 trees"]
-    H --> K["Same Morgan transformation"]
-    J --> L["Saved train-only model"]
-    K --> M["One-time final evaluation"]
-    L --> M
+    F --> H["Fixed benchmark split<br/>393 molecules"]
+    G --> I["No molecular features"]
+    I --> J["DummyClassifier"]
+    G --> K["8 RDKit descriptors"]
+    K --> L["Train-fitted StandardScaler"]
+    L --> M["Logistic Regression"]
+    G --> N["Morgan fingerprints<br/>radius=2, 2,048 bits"]
+    N --> O["Random Forest<br/>300 trees"]
+    H --> P["Apply corresponding<br/>train-fitted transformations"]
+    J --> Q["Internal baseline comparison"]
+    M --> Q
+    O --> Q
+    P --> Q
+    Q --> R["Random Forest selected<br/>for deployment"]
 ```
+
+The fixed benchmark split was not used to fit any of the three models. It was, however, used to compare the baselines and select the deployed Random Forest, so the comparison is not an independent post-selection evaluation.
 
 ### Deployed inference path
 
@@ -102,31 +141,9 @@ The similarity branch is independent of the classification branch. The Random Fo
 
 The eight RDKit descriptors were used only by the Logistic Regression comparison model. They are not inputs to the deployed Random Forest.
 
-## Baseline Model Comparison
+## Fixed-Split Benchmark Performance
 
-All three models were defined before final evaluation and were trained on the same 1,572 training molecules. They were evaluated on the same 393 held-out test molecules.
-
-| Model | Molecular representation | Accuracy | F1-score | ROC-AUC |
-|---|---|---:|---:|---:|
-| DummyClassifier | No molecular features; always predicts the majority class | 0.7634 | 0.8658 | 0.5000 |
-| Logistic Regression | 8 RDKit descriptors with train-fitted standardization | 0.8550 | 0.9100 | 0.8475 |
-| **Random Forest** | **Morgan fingerprint, radius=2, 2,048 bits** | **0.8830** | **0.9274** | **0.8960** |
-
-The DummyClassifier shows why Accuracy and F1-score must be interpreted carefully: because 76.34% of the modeling cohort is BBB+, predicting only BBB+ already gives an Accuracy of 0.7634 and an F1-score of 0.8658, despite providing no molecular discrimination. Its ROC-AUC is 0.5000.
-
-## Why Random Forest Was Selected
-
-The Random Forest was selected as the deployed baseline for three reasons:
-
-1. It achieved the highest Accuracy, F1-score, and ROC-AUC among the three prespecified models under the same fixed split.
-2. Morgan fingerprints retain many local substructure patterns, while the Logistic Regression model uses only eight global molecular descriptors. Random Forest can learn nonlinear interactions among those fingerprint bits without requiring feature scaling.
-3. It provided a strong, reproducible baseline without complex hyperparameter optimization.
-
-This selection does not mean that Random Forest is universally the best BBBP model. The result is specific to this curated dataset, molecular representation, and one stratified random split. The model also has an important BBB- detection limitation described below.
-
-## Held-Out Test Performance
-
-The deployed Random Forest was evaluated once on the fixed test set of 393 molecules at a threshold of 0.5.
+The deployed Random Forest was evaluated on the fixed benchmark split of 393 molecules at a threshold of 0.5. These molecules were not used to fit the model, but the split was used to compare the three baselines and select the deployed model; it is therefore not an independent post-selection test set.
 
 | Metric | Value |
 |---|---:|
@@ -155,6 +172,9 @@ This difference is the model's most important performance limitation. The high A
 
 ## Train-Only Improvement Experiment
 
+<details>
+<summary>Show the Balanced Random Forest follow-up experiment</summary>
+
 A class-weighted Random Forest was examined later as an improvement candidate using only the original 1,572 training molecules in 5-fold cross-validation.
 
 | Train-only 5-fold CV metric | Existing RF | Balanced RF |
@@ -164,9 +184,17 @@ A class-weighted Random Forest was examined later as an improvement candidate us
 | Sensitivity | 0.974167 | 0.952500 |
 | Specificity | 0.615784 | 0.723063 |
 
-The Balanced RF improved mean Specificity, Balanced Accuracy, and MCC but reduced mean Sensitivity. These cross-validation values are not directly comparable with the held-out test values above. The fixed test set was not reused to select or re-evaluate this candidate, and the deployed application still uses the original Random Forest pending evaluation on a new external or otherwise unused test set.
+The Balanced RF improved mean Specificity, Balanced Accuracy, and MCC but reduced mean Sensitivity. These cross-validation values are not directly comparable with the fixed-split benchmark values above. The fixed benchmark split was not reused to select or re-evaluate this candidate, and the deployed application still uses the original Random Forest pending evaluation on a new external or otherwise unused test set.
+
+</details>
 
 ## Application Output and Structural Similarity
+
+### Key terms for beginners
+
+- **SMILES:** a text format that represents atoms, bonds, branches, and ring connections in a molecular structure.
+- **Morgan fingerprint:** a 2,048-bit pattern of zeros and ones that records whether selected local molecular substructures are present.
+- **Tanimoto similarity:** a value from 0 to 1 that measures how much the active fingerprint bits of two molecules overlap. It describes structural resemblance, not prediction confidence.
 
 For one valid SMILES input, the application displays:
 
@@ -198,7 +226,7 @@ On macOS or Linux, replace the activation command with:
 source .venv/bin/activate
 ```
 
-Package installation requires internet access. Running the saved application model does not require a local copy of the raw BBBP CSV.
+Open the local URL printed by Streamlit, typically [http://localhost:8501](http://localhost:8501). Package installation requires internet access. Running the saved application model does not require a local copy of the raw BBBP CSV.
 
 ## Repository Structure
 
@@ -219,9 +247,10 @@ Package installation requires internet access. Running the saved application mod
 ## Limitations
 
 - The final modeling cohort contains only 1,965 molecules and is imbalanced toward BBB+ labels.
-- The deployed model has a held-out test Specificity of 0.5699 and frequently misclassifies BBB- molecules as BBB+.
-- Final performance was measured using one stratified random split with `random_state=42`.
-- Structurally related molecular scaffolds may occur in both train and test sets, which can make random-split performance optimistic.
+- The deployed model has a fixed-split benchmark Specificity of 0.5699 and frequently misclassifies BBB- molecules as BBB+.
+- The same fixed 20% split was used to compare the three baseline models and select the deployed Random Forest, so its reported performance is an internal benchmark rather than an independent post-selection estimate.
+- Benchmark performance was measured using one stratified random split with `random_state=42`.
+- Structurally related molecular scaffolds may occur in both the training and benchmark splits, which can make random-split performance optimistic.
 - Scaffold-split, repeated-split, probability-calibration, and external-dataset validation remain limited or absent.
 - The model uses two-dimensional molecular structure patterns but does not directly model transporters, metabolism, protein binding, dose, concentration, experimental conditions, or species differences.
 - Tanimoto similarity indicates structural resemblance only; it is not prediction confidence.
