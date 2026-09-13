@@ -2,6 +2,9 @@
 
 This educational research project predicts whether a molecule is more likely to be labeled BBB+ or BBB- from its SMILES representation. It uses the public MoleculeNet BBBP dataset, RDKit molecular features, three prespecified baseline models, and a deployed Streamlit application.
 
+## Why BBBP Prediction Matters
+Blood-brain barrier permeability is an important consideration in drug development. CNS-targeted compounds may need to reach the brain, whereas other compounds may need to avoid unintended CNS exposure. This project was created to explore how molecular descriptors, fingerprints, and baseline machine-learning models can support early compound prioritization before more resource-intensive experiments.
+
 The deployed model is a Random Forest trained on 2,048-bit Morgan fingerprints. Its output is an uncalibrated classification score, not a measured blood-brain barrier passage probability, brain concentration, or clinical prediction.
 
 ## Live Demo
